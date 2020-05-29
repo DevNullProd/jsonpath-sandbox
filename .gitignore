@@ -1,2 +1,4 @@
 node_modules
 generated/aesprim-browser.js
+*.swp
+yarn.lock
