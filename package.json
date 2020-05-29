@@ -9,9 +9,11 @@
     "generate": "node bin/generate_parser.js > generated/parser.js"
   },
   "dependencies": {
-    "esprima": "1.2.2",
+    "escodegen": "^1.14.1",
+    "esprima": "^4.0.1",
     "static-eval": "2.0.2",
-    "underscore": "1.7.0"
+    "underscore": "1.7.0",
+    "v8-sandbox": "^2.1.6"
   },
   "browser": "./jsonpath.js",
   "alias": {
