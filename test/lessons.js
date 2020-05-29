@@ -4,35 +4,34 @@ var jp = require('../');
 var data = require('./data/store.json');
 
 suite('orig-google-code-issues', function() {
-    
-  test('comma in eval', function() {
+
+  test('comma in eval', async function() {
     var pathExpression = '$..book[?(@.price && ",")]'
-    var results = jp.query(data, pathExpression);
+    var results = await jp.query(data, pathExpression);
     assert.deepEqual(results, data.store.book);
   });
 
-  test('member names with dots', function() {
+  test('member names with dots', async function() {
     var data = { 'www.google.com': 42, 'www.wikipedia.org': 190 };
-    var results = jp.query(data, "$['www.google.com']");
+    var results = await jp.query(data, "$['www.google.com']");
     assert.deepEqual(results, [ 42 ]);
   });
 
-  test('nested objects with filter', function() {
+  test('nested objects with filter', async function() {
     var data = { dataResult: { object: { objectInfo: { className: "folder", typeName: "Standard Folder", id: "uniqueId" } } } };
-    var results = jp.query(data, "$..object[?(@.className=='folder')]");
+    var results = await jp.query(data, "$..object[?(@.className=='folder')]");
     assert.deepEqual(results, [ data.dataResult.object.objectInfo ]);
   });
 
-  test('script expressions with @ char', function() {
+  test('script expressions with @ char', async function() {
     var data = { "DIV": [{ "@class": "value", "val": 5 }] };
-    var results = jp.query(data, "$..DIV[?(@['@class']=='value')]");
+    var results = await jp.query(data, "$..DIV[?(@['@class']=='value')]");
     assert.deepEqual(results, data.DIV);
   });
 
-  test('negative slices', function() {
-    var results = jp.query(data, "$..book[-1:].title");
+  test('negative slices', async function() {
+    var results = await jp.query(data, "$..book[-1:].title");
     assert.deepEqual(results, ['The Lord of the Rings']);
   });
 
 });
-
