@@ -16,8 +16,8 @@ var cities = [
   { name: "Rome",   "population": 2870528 }
 ];
 
-var jp = require('jsonpath');
-jp.query(cities, '$..name');
+var jp = require('jsonpath-sandbox');
+jp.query(cities, '$..name')
   .then(function(names){
     console.log(names)
     // => [ "London", "Berlin", "Madrid", "Rome" ]
