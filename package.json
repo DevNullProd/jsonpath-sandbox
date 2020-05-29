@@ -4,7 +4,7 @@
   "version": "1.0.2",
   "author": "david@fmail.co.uk",
   "scripts": {
-    "test": "mocha -u tdd test && jscs lib && jshint lib",
+    "test": "mocha -u tdd test",
     "generate": "node bin/generate_parser.js > generated/parser.js"
   },
   "dependencies": {
@@ -16,8 +16,6 @@
   "browser": "./jsonpath.js",
   "devDependencies": {
     "jison": "0.4.13",
-    "jscs": "1.10.0",
-    "jshint": "2.6.0",
     "mocha": "2.1.0"
   },
   "repository": {
