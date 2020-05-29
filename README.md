@@ -1,8 +1,9 @@
-[![Build Status](https://travis-ci.org/dchester/jsonpath.png?branch=master)](https://travis-ci.org/dchester/jsonpath)
-
-# jsonpath
+# jsonpath-sandbox
 
 Query JavaScript objects with JSONPath expressions.  Robust / safe JSONPath engine for Node.js.
+
+This is a fork of the [dchester/jsonpath](https://github.com/dchester/jsonpath) library for nodejs. 
+See **Differences from dchester implementation** below for specific differences. Most notably this version uses the [v8-sandbox](https://github.com/fulcrumapp/v8-sandbox) library to evaluate filter expressions in a safe manner (vs [static-eval](https://github.com/browserify/static-eval) which is not suitable for running abritrary / untrusted user input) and thus presents an asynchronous / **Promise**-based API.
 
 
 ## Query Example
@@ -16,16 +17,24 @@ var cities = [
 ];
 
 var jp = require('jsonpath');
-var names = jp.query(cities, '$..name');
+jp.query(cities, '$..name');
+  .then(function(names){
+    console.log(names)
+    // => [ "London", "Berlin", "Madrid", "Rome" ]
 
-// [ "London", "Berlin", "Madrid", "Rome" ]
+    jp.shutdown()
+  }) 
 ```
+
+### Important! Shutdown must be invoked
+
+To cleanly terminate the v8 javascript interpreter, the **shutdown** method must be invoked after operations are completed. Otherwise your nodejs process will not terminate!
 
 ## Install
 
 Install from npm:
 ```bash
-$ npm install jsonpath
+$ npm install jsonpath-sandbox
 ```
 
 ## JSONPath Syntax
@@ -105,65 +114,75 @@ JSONPath                      | Description
 
 ## Methods
 
+All methods below are defined asynchronously and return Promises. Handle with **then** / **catch** blocks or invoke with **await**.
+
 #### jp.query(obj, pathExpression[, count])
 
-Find elements in `obj` matching `pathExpression`.  Returns an array of elements that satisfy the provided JSONPath expression, or an empty array if none were matched.  Returns only first `count` elements if specified.
+Find elements in `obj` matching `pathExpression`.  Yields an array of elements that satisfy the provided JSONPath expression, or an empty array if none were matched.  Array contains only first `count` elements if specified.
 
 ```javascript
-var authors = jp.query(data, '$..author');
-// [ 'Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien' ]
+jp.query(data, '$..author')
+  .then(function(authors){
+    // => [ 'Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien' ]
+  })
 ```
 
 #### jp.paths(obj, pathExpression[, count])
 
-Find paths to elements in `obj` matching `pathExpression`.  Returns an array of element paths that satisfy the provided JSONPath expression. Each path is itself an array of keys representing the location within `obj` of the matching element.  Returns only first `count` paths if specified.
+Find paths to elements in `obj` matching `pathExpression`.  Yields an array of element paths that satisfy the provided JSONPath expression. Each path is itself an array of keys representing the location within `obj` of the matching element.  Returns only first `count` paths if specified.
 
 
 ```javascript
-var paths = jp.paths(data, '$..author');
-// [
-//   ['$', 'store', 'book', 0, 'author'] },
-//   ['$', 'store', 'book', 1, 'author'] },
-//   ['$', 'store', 'book', 2, 'author'] },
-//   ['$', 'store', 'book', 3, 'author'] }
-// ]
+jp.paths(data, '$..author')
+  .then(function(paths){
+    // => [
+    //      ['$', 'store', 'book', 0, 'author'],
+    //      ['$', 'store', 'book', 1, 'author'],
+    //      ['$', 'store', 'book', 2, 'author'],
+    //      ['$', 'store', 'book', 3, 'author']
+    //    ]
+  })
 ```
 
 #### jp.nodes(obj, pathExpression[, count])
 
-Find elements and their corresponding paths in `obj` matching `pathExpression`.  Returns an array of node objects where each node has a `path` containing an array of keys representing the location within `obj`, and a `value` pointing to the matched element.  Returns only first `count` nodes if specified.
+Find elements and their corresponding paths in `obj` matching `pathExpression`.  Yields an array of node objects where each node has a `path` containing an array of keys representing the location within `obj`, and a `value` pointing to the matched element.  Array contains only first `count` nodes if specified.
 
 ```javascript
-var nodes = jp.nodes(data, '$..author');
-// [
-//   { path: ['$', 'store', 'book', 0, 'author'], value: 'Nigel Rees' },
-//   { path: ['$', 'store', 'book', 1, 'author'], value: 'Evelyn Waugh' },
-//   { path: ['$', 'store', 'book', 2, 'author'], value: 'Herman Melville' },
-//   { path: ['$', 'store', 'book', 3, 'author'], value: 'J. R. R. Tolkien' }
-// ]
+jp.nodes(data, '$..author')
+  .then(function(nodes){
+    // => [
+    //      { path: ['$', 'store', 'book', 0, 'author'], value: 'Nigel Rees' },
+    //      { path: ['$', 'store', 'book', 1, 'author'], value: 'Evelyn Waugh' },
+    //      { path: ['$', 'store', 'book', 2, 'author'], value: 'Herman Melville' },
+    //      { path: ['$', 'store', 'book', 3, 'author'], value: 'J. R. R. Tolkien' }
+    //    ]
+  })
 ```
 
 #### jp.value(obj, pathExpression[, newValue])
 
-Returns the value of the first element matching `pathExpression`.  If `newValue` is provided, sets the value of the first matching element and returns the new value.
+Yields the value of the first element matching `pathExpression`.  If `newValue` is provided, sets the value of the first matching element and returns the new value.
 
 #### jp.parent(obj, pathExpression)
 
-Returns the parent of the first matching element.
+Yields the parent of the first matching element.
 
 #### jp.apply(obj, pathExpression, fn)
 
-Runs the supplied function `fn` on each matching element, and replaces each matching element with the return value from the function.  The function accepts the value of the matching element as its only parameter.  Returns matching nodes with their updated values.
+Runs the supplied function `fn` on each matching element, and replaces each matching element with the return value from the function.  The function accepts the value of the matching element as its only parameter.  Yields matching nodes with their updated values.
 
 
 ```javascript
-var nodes = jp.apply(data, '$..author', function(value) { return value.toUpperCase() });
-// [
-//   { path: ['$', 'store', 'book', 0, 'author'], value: 'NIGEL REES' },
-//   { path: ['$', 'store', 'book', 1, 'author'], value: 'EVELYN WAUGH' },
-//   { path: ['$', 'store', 'book', 2, 'author'], value: 'HERMAN MELVILLE' },
-//   { path: ['$', 'store', 'book', 3, 'author'], value: 'J. R. R. TOLKIEN' }
-// ]
+jp.apply(data, '$..author', function(value) { return value.toUpperCase() })
+  .then(function(nodes){
+    // => [
+    //      { path: ['$', 'store', 'book', 0, 'author'], value: 'NIGEL REES' },
+    //      { path: ['$', 'store', 'book', 1, 'author'], value: 'EVELYN WAUGH' },
+    //      { path: ['$', 'store', 'book', 2, 'author'], value: 'HERMAN MELVILLE' },
+    //      { path: ['$', 'store', 'book', 3, 'author'], value: 'J. R. R. TOLKIEN' }
+    //    ]
+  })
 ```
 
 #### jp.parse(pathExpression)
@@ -171,11 +190,13 @@ var nodes = jp.apply(data, '$..author', function(value) { return value.toUpperCa
 Parse the provided JSONPath expression into path components and their associated operations.
 
 ```javascript
-var path = jp.parse('$..author');
-// [
-//   { expression: { type: 'root', value: '$' } },
-//   { expression: { type: 'identifier', value: 'author' }, operation: 'member', scope: 'descendant' }
-// ]
+jp.parse('$..author')
+  .then(function(path){
+    // => [
+    //      { expression: { type: 'root', value: '$' } },
+    //      { expression: { type: 'identifier', value: 'author' }, operation: 'member', scope: 'descendant' }
+    //    ]
+  })
 ```
 
 #### jp.stringify(path)
@@ -183,32 +204,41 @@ var path = jp.parse('$..author');
 Returns a path expression in string form, given a path.  The supplied path may either be a flat array of keys, as returned by `jp.nodes` for example, or may alternatively be a fully parsed path expression in the form of an array of path components as returned by `jp.parse`.
 
 ```javascript
-var pathExpression = jp.stringify(['$', 'store', 'book', 0, 'author']);
-// "$.store.book[0].author"
+jp.stringify(['$', 'store', 'book', 0, 'author'])
+  .then(function(pathExpression){
+    // =>  "$.store.book[0].author"
+  })
 ```
 
-## Differences from Original Implementation
+#### jp.shutdown()
 
-This implementation aims to be compatible with Stefan Goessner's original implementation with a few notable exceptions described below.
+Terminate the v8 execution environment. Must be called before nodejs can exit.
 
-#### Evaluating Script Expressions
+## Differences from dchester Implementation
 
-Script expressions (i.e, `(...)` and `?(...)`) are statically evaluated via [static-eval](https://github.com/substack/static-eval) rather than using the underlying script engine directly.  That means both that the scope is limited to the instance variable (`@`), and only simple expressions (with no side effects) will be valid.  So for example, `?(@.length>10)` will be just fine to match arrays with more than ten elements, but `?(process.exit())` will not get evaluated since `process` would yield a `ReferenceError`.  This method is even safer than `vm.runInNewContext`, since the script engine itself is more limited and entirely distinct from the one running the application code.  See more details in the [implementation](https://github.com/substack/static-eval/blob/master/index.js) of the evaluator.
+This implementation aims to be as compatible with dchester's implementation and thus the original Stefan Goessner implemention as possible. See the README in dchester's repo for differences with the original implementation. Differences with dchester's implementation can be found below
 
-#### Grammar
+#### v8-sandbox engine is used
 
-This project uses a formal BNF [grammar](https://github.com/dchester/jsonpath/blob/master/lib/grammar.js) to parse JSONPath expressions, an attempt at reverse-engineering the intent of the original implementation, which parses via a series of creative regular expressions.  The original regex approach can sometimes be forgiving for better or for worse (e.g., `$['store]` => `$['store']`), and in other cases, can be just plain wrong (e.g. `[` => `$`). 
+After an analysis of the dchester/jsonpath project (see **docs/jsonpath-audit**) we determined that a more secure solution was needed to process filter expressions. According to the [README](https://github.com/browserify/static-eval/blob/master/readme.markdown) in the static-eval project:
 
-#### Other Minor Differences
+**It (static-eval) is NOT suitable for handling arbitrary untrusted user input. Malicious user input can execute arbitrary code.**
 
-As a result of using a real parser and static evaluation, there are some arguable bugs in the original library that have not been carried through here:
+Security issues are mitigated by utilizing Google's V8 javascript interpreter as presented via the v8-sandbox library. According to the v8-sandbox [README](https://github.com/fulcrumapp/v8-sandbox/blob/master/README.md):
 
-- strings in subscripts may now be double-quoted
-- final `step` arguments in slice operators may now be negative
-- script expressions may now contain `.` and `@` characters not referring to instance variables
-- subscripts no longer act as character slices on string elements
-- non-ascii non-word characters are no-longer valid in member identifier names; use quoted subscript strings instead (e.g., `$['$']` instead of `$.$`)
-- unions now yield real unions with no duplicates rather than concatenated results
+**Safely execute arbitrary untrusted JavaScript from nodejs. This module implements an isolated JavaScript environment that can be used to run any code without being able to escape the sandbox. **
+
+#### Asynchronous API
+
+Because v8-sandbox implements an asynchronous (Promise-based) execution environment this library had to be refactored correspondingly. Thus all public API calls return promises which you can handle via **then** and **catch** resolution / rejection callbacks or using the **await** keyword in async functions.
+
+#### Not accessible from browser
+
+Because v8-sandbox leverages C++ logic to interface with the V8 Javascript runtime, this library is currently not exportable to the web-browser. We may look into the feasability of this in the future (Pull-Requests are more than welcome!)
+
+#### _AT_SYMBOL_
+
+Because there is currently no simple way to monkey-patch V8 in a similar manner to dchester's monkey-patching of [esprima](https://esprima.org/) (so as to permit **@** to be used as an identifier for seamless filter expression execution), we swap **@** with a static string before execution. The string **_AT_SYMBOL_** is used in this case. Unfortunately if this library is used to process a filter expression with the "_AT_SYMBOL_" string in it, it will not work properly. This is a quick fix until we can figure out a better solution.
 
 ## License
 
