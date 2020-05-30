@@ -210,6 +210,29 @@ jp.stringify(['$', 'store', 'book', 0, 'author'])
   })
 ```
 
+#### jp.complexity(pathExpression)
+
+Returns a quantitative representation of path extression complexity. Value returned is object with summary of
+
+- number of path components
+- number of filter and script expressions
+- number of unary operations
+- number of binary operations (arithmatic and equivalency)
+- number of logical operations (and/or)
+
+```javascript
+jp.complexity('$.a[(@.b + 1 == 5)][?(@.c && @d || !@.e || @.f)]')
+  .then(function(path){
+    // => {
+    //      components : 4,
+    //     expressions : 2,
+    //           unary : 1,
+    //          binary : 2,
+    //         logical : 3
+    //    }
+  })
+```
+
 #### jp.shutdown()
 
 Terminate the v8 execution environment. Must be called before nodejs can exit.
