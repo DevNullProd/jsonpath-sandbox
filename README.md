@@ -3,7 +3,7 @@
 Query JavaScript objects with JSONPath expressions.  Robust / safe JSONPath engine for Node.js.
 
 This is a fork of the [dchester/jsonpath](https://github.com/dchester/jsonpath) library for nodejs. 
-See **Differences from dchester implementation** below for specific differences. Most notably this version uses the [v8-sandbox](https://github.com/fulcrumapp/v8-sandbox) library to evaluate filter expressions in a safe manner (vs [static-eval](https://github.com/browserify/static-eval) which is not suitable for running abritrary / untrusted user input) and thus presents an asynchronous / **Promise**-based API.
+See **Differences from dchester implementation** below for specific differences. Most notably this version uses the [v-eight](https://github.com/DevNullProd/v-eight) library to evaluate filter expressions in a safe manner (vs [static-eval](https://github.com/browserify/static-eval) which is not suitable for running abritrary / untrusted user input).
 
 
 ## Query Example
@@ -17,18 +17,10 @@ var cities = [
 ];
 
 var jp = require('jsonpath-sandbox');
-jp.query(cities, '$..name')
-  .then(function(names){
-    console.log(names)
-    // => [ "London", "Berlin", "Madrid", "Rome" ]
+var names = jp.query(cities, '$..name')
 
-    jp.shutdown()
-  }) 
+// [ "London", "Berlin", "Madrid", "Rome" ]
 ```
-
-### Important! Shutdown must be invoked
-
-To cleanly terminate the v8 javascript interpreter, the **shutdown** method must be invoked after operations are completed. Otherwise your nodejs process will not terminate!
 
 ## Install
 
@@ -121,10 +113,9 @@ All methods below are defined asynchronously and return Promises. Handle with **
 Find elements in `obj` matching `pathExpression`.  Yields an array of elements that satisfy the provided JSONPath expression, or an empty array if none were matched.  Array contains only first `count` elements if specified.
 
 ```javascript
-jp.query(data, '$..author')
-  .then(function(authors){
-    // => [ 'Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien' ]
-  })
+var authors = jp.query(data, '$..author');
+
+// [ 'Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien' ]
 ```
 
 #### jp.paths(obj, pathExpression[, count])
@@ -133,15 +124,14 @@ Find paths to elements in `obj` matching `pathExpression`.  Yields an array of e
 
 
 ```javascript
-jp.paths(data, '$..author')
-  .then(function(paths){
-    // => [
-    //      ['$', 'store', 'book', 0, 'author'],
-    //      ['$', 'store', 'book', 1, 'author'],
-    //      ['$', 'store', 'book', 2, 'author'],
-    //      ['$', 'store', 'book', 3, 'author']
-    //    ]
-  })
+var paths = jp.paths(data, '$..author');
+
+// [
+//   ['$', 'store', 'book', 0, 'author'],
+//   ['$', 'store', 'book', 1, 'author'],
+//   ['$', 'store', 'book', 2, 'author'],
+//   ['$', 'store', 'book', 3, 'author']
+// ]
 ```
 
 #### jp.nodes(obj, pathExpression[, count])
@@ -149,15 +139,14 @@ jp.paths(data, '$..author')
 Find elements and their corresponding paths in `obj` matching `pathExpression`.  Yields an array of node objects where each node has a `path` containing an array of keys representing the location within `obj`, and a `value` pointing to the matched element.  Array contains only first `count` nodes if specified.
 
 ```javascript
-jp.nodes(data, '$..author')
-  .then(function(nodes){
-    // => [
-    //      { path: ['$', 'store', 'book', 0, 'author'], value: 'Nigel Rees' },
-    //      { path: ['$', 'store', 'book', 1, 'author'], value: 'Evelyn Waugh' },
-    //      { path: ['$', 'store', 'book', 2, 'author'], value: 'Herman Melville' },
-    //      { path: ['$', 'store', 'book', 3, 'author'], value: 'J. R. R. Tolkien' }
-    //    ]
-  })
+var nodes = jp.nodes(data, '$..author');
+
+// [
+//   { path: ['$', 'store', 'book', 0, 'author'], value: 'Nigel Rees' },
+//   { path: ['$', 'store', 'book', 1, 'author'], value: 'Evelyn Waugh' },
+//   { path: ['$', 'store', 'book', 2, 'author'], value: 'Herman Melville' },
+//   { path: ['$', 'store', 'book', 3, 'author'], value: 'J. R. R. Tolkien' }
+// ]
 ```
 
 #### jp.value(obj, pathExpression[, newValue])
@@ -174,15 +163,14 @@ Runs the supplied function `fn` on each matching element, and replaces each matc
 
 
 ```javascript
-jp.apply(data, '$..author', function(value) { return value.toUpperCase() })
-  .then(function(nodes){
-    // => [
-    //      { path: ['$', 'store', 'book', 0, 'author'], value: 'NIGEL REES' },
-    //      { path: ['$', 'store', 'book', 1, 'author'], value: 'EVELYN WAUGH' },
-    //      { path: ['$', 'store', 'book', 2, 'author'], value: 'HERMAN MELVILLE' },
-    //      { path: ['$', 'store', 'book', 3, 'author'], value: 'J. R. R. TOLKIEN' }
-    //    ]
-  })
+var nodes = jp.apply(data, '$..author', function(value) { return value.toUpperCase() });
+
+// [
+//   { path: ['$', 'store', 'book', 0, 'author'], value: 'NIGEL REES' },
+//   { path: ['$', 'store', 'book', 1, 'author'], value: 'EVELYN WAUGH' },
+//   { path: ['$', 'store', 'book', 2, 'author'], value: 'HERMAN MELVILLE' },
+//   { path: ['$', 'store', 'book', 3, 'author'], value: 'J. R. R. TOLKIEN' }
+// ]
 ```
 
 #### jp.parse(pathExpression)
@@ -190,13 +178,11 @@ jp.apply(data, '$..author', function(value) { return value.toUpperCase() })
 Parse the provided JSONPath expression into path components and their associated operations.
 
 ```javascript
-jp.parse('$..author')
-  .then(function(path){
-    // => [
-    //      { expression: { type: 'root', value: '$' } },
-    //      { expression: { type: 'identifier', value: 'author' }, operation: 'member', scope: 'descendant' }
-    //    ]
-  })
+var path = jp.parse('$..author');
+// [
+//   { expression: { type: 'root', value: '$' } },
+//   { expression: { type: 'identifier', value: 'author' }, operation: 'member', scope: 'descendant' }
+// ]
 ```
 
 #### jp.stringify(path)
@@ -204,10 +190,9 @@ jp.parse('$..author')
 Returns a path expression in string form, given a path.  The supplied path may either be a flat array of keys, as returned by `jp.nodes` for example, or may alternatively be a fully parsed path expression in the form of an array of path components as returned by `jp.parse`.
 
 ```javascript
-jp.stringify(['$', 'store', 'book', 0, 'author'])
-  .then(function(pathExpression){
-    // =>  "$.store.book[0].author"
-  })
+var pathExpression = jp.stringify(['$', 'store', 'book', 0, 'author'])
+
+// "$.store.book[0].author"
 ```
 
 #### jp.complexity(pathExpression)
@@ -221,43 +206,33 @@ Returns a quantitative representation of path extression complexity. Value retur
 - number of logical operations (and/or)
 
 ```javascript
-jp.complexity('$.a[(@.b + 1 == 5)][?(@.c && @d || !@.e || @.f)]')
-  .then(function(path){
-    // => {
-    //      components : 4,
-    //     expressions : 2,
-    //           unary : 1,
-    //          binary : 2,
-    //         logical : 3
-    //    }
-  })
+const complexity = jp.complexity('$.a[(@.b + 1 == 5)][?(@.c && @d || !@.e || @.f)]')
+// {
+//   components : 4,
+//  expressions : 2,
+//        unary : 1,
+//       binary : 2,
+//      logical : 3
+// }
 ```
-
-#### jp.shutdown()
-
-Terminate the v8 execution environment. Must be called before nodejs can exit.
 
 ## Differences from dchester Implementation
 
 This implementation aims to be as compatible with dchester's implementation and thus the original Stefan Goessner implemention as possible. See the README in dchester's repo for differences with the original implementation. Differences with dchester's implementation can be found below
 
-#### v8-sandbox engine is used
+#### v-eight engine is used
 
 After an analysis of the dchester/jsonpath project (see **docs/jsonpath-audit**) we determined that a more secure solution was needed to process filter expressions. According to the [README](https://github.com/browserify/static-eval/blob/master/readme.markdown) in the static-eval project:
 
 **It (static-eval) is NOT suitable for handling arbitrary untrusted user input. Malicious user input can execute arbitrary code.**
 
-Security issues are mitigated by utilizing Google's V8 javascript interpreter as presented via the v8-sandbox library. According to the v8-sandbox [README](https://github.com/fulcrumapp/v8-sandbox/blob/master/README.md):
+Security issues are mitigated by utilizing Google's V8 javascript interpreter as presented via the v-eight library. According to the v-eight [README](https://github.com/DevNullProd/v-eight/blob/master/README.md):
 
-**Safely execute arbitrary untrusted JavaScript from nodejs. This module implements an isolated JavaScript environment that can be used to run any code without being able to escape the sandbox. **
-
-#### Asynchronous API
-
-Because v8-sandbox implements an asynchronous (Promise-based) execution environment this library had to be refactored correspondingly. Thus all public API calls return promises which you can handle via **then** and **catch** resolution / rejection callbacks or using the **await** keyword in async functions.
+**Safely execute arbitrary untrusted JavaScript from nodejs. This module implements a lightweight isolated JavaScript environment that can be used to run any code without being able to escape the sandbox. **
 
 #### Not accessible from browser
 
-Because v8-sandbox leverages C++ logic to interface with the V8 Javascript runtime, this library is currently not exportable to the web-browser. We may look into the feasability of this in the future (Pull-Requests are more than welcome!)
+Because v-eight leverages C++ logic to interface with the V8 Javascript runtime, this library is currently not exportable to the web-browser. We may look into the feasability of this in the future (Pull-Requests are more than welcome!)
 
 #### _AT_SYMBOL_
 
@@ -266,4 +241,3 @@ Because there is currently no simple way to monkey-patch V8 in a similar manner 
 ## License
 
 [MIT](LICENSE)
-

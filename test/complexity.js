@@ -3,7 +3,7 @@ var jp = require('../');
 
 suite('complexity', function() {
 
-  test('simple expression with no filter or script expressions', async function() {
+  test('simple expression with no filter or script expressions', function() {
     const expected = {
        components : 2,
       expressions : 0,
@@ -12,10 +12,10 @@ suite('complexity', function() {
           logical : 0
     }
 
-    assert.deepEqual(await jp.complexity("$.a"), expected)
+    assert.deepEqual(jp.complexity("$.a"), expected)
   });
 
-  test('expression with filter and script expressions', async function() {
+  test('expression with filter and script expressions', function() {
     const expected = {
        components : 4,
       expressions : 2,
@@ -24,10 +24,10 @@ suite('complexity', function() {
           logical : 0
     }
 
-    assert.deepEqual(await jp.complexity("$.a[(@.b)][?(@.c)]"), expected)
+    assert.deepEqual(jp.complexity("$.a[(@.b)][?(@.c)]"), expected)
   })
 
-  test('filter and script expressions with unary, binary, and logical expressions', async function() {
+  test('filter and script expressions with unary, binary, and logical expressions', function() {
     const expected = {
        components : 4,
       expressions : 2,
@@ -36,7 +36,7 @@ suite('complexity', function() {
           logical : 3
     }
 
-    assert.deepEqual(await jp.complexity("$.a[(@.b + 1 == 5)][?(@.c && @d || !@.e || @.f)]"), expected)
+    assert.deepEqual(jp.complexity("$.a[(@.b + 1 == 5)][?(@.c && @d || !@.e || @.f)]"), expected)
   })
 
 });
