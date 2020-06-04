@@ -11,7 +11,8 @@
     "escodegen": "^1.14.1",
     "esprima": "^4.0.1",
     "underscore": "1.7.0",
-    "v8-sandbox": "^2.1.6"
+    "v8-sandbox": "^2.1.6",
+    "vee-eight": "^0.0.1"
   },
   "devDependencies": {
     "jison": "0.4.13",

@@ -3,7 +3,7 @@
 Query JavaScript objects with JSONPath expressions.  Robust / safe JSONPath engine for Node.js.
 
 This is a fork of the [dchester/jsonpath](https://github.com/dchester/jsonpath) library for nodejs. 
-See **Differences from dchester implementation** below for specific differences. Most notably this version uses the [v-eight](https://github.com/DevNullProd/v-eight) library to evaluate filter expressions in a safe manner (vs [static-eval](https://github.com/browserify/static-eval) which is not suitable for running abritrary / untrusted user input).
+See **Differences from dchester implementation** below for specific differences. Most notably this version uses the [vee-eight](https://github.com/DevNullProd/vee-eight) library to evaluate filter expressions in a safe manner (vs [static-eval](https://github.com/browserify/static-eval) which is not suitable for running abritrary / untrusted user input).
 
 
 ## Query Example
@@ -220,19 +220,19 @@ const complexity = jp.complexity('$.a[(@.b + 1 == 5)][?(@.c && @d || !@.e || @.f
 
 This implementation aims to be as compatible with dchester's implementation and thus the original Stefan Goessner implemention as possible. See the README in dchester's repo for differences with the original implementation. Differences with dchester's implementation can be found below
 
-#### v-eight engine is used
+#### vee-eight engine is used
 
 After an analysis of the dchester/jsonpath project (see **docs/jsonpath-audit**) we determined that a more secure solution was needed to process filter expressions. According to the [README](https://github.com/browserify/static-eval/blob/master/readme.markdown) in the static-eval project:
 
 **It (static-eval) is NOT suitable for handling arbitrary untrusted user input. Malicious user input can execute arbitrary code.**
 
-Security issues are mitigated by utilizing Google's V8 javascript interpreter as presented via the v-eight library. According to the v-eight [README](https://github.com/DevNullProd/v-eight/blob/master/README.md):
+Security issues are mitigated by utilizing Google's V8 javascript interpreter as presented via the vee-eight library. According to the vee-eight [README](https://github.com/DevNullProd/vee-eight/blob/master/README.md):
 
 **Safely execute arbitrary untrusted JavaScript from nodejs. This module implements a lightweight isolated JavaScript environment that can be used to run any code without being able to escape the sandbox. **
 
 #### Not accessible from browser
 
-Because v-eight leverages C++ logic to interface with the V8 Javascript runtime, this library is currently not exportable to the web-browser. We may look into the feasability of this in the future (Pull-Requests are more than welcome!)
+Because vee-eight leverages C++ logic to interface with the V8 Javascript runtime, this library is currently not exportable to the web-browser. We may look into the feasability of this in the future (Pull-Requests are more than welcome!)
 
 #### _AT_SYMBOL_
 
