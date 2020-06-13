@@ -1,7 +1,7 @@
 {
   "name": "jsonpath-sandbox",
   "description": "Query JavaScript objects with JSONPath expressions. Robust / safe JSONPath engine for Node.js.",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "author": "mo@devnull.network",
   "scripts": {
     "test": "mocha -u tdd test",
