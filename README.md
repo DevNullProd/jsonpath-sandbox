@@ -195,27 +195,6 @@ var pathExpression = jp.stringify(['$', 'store', 'book', 0, 'author'])
 // "$.store.book[0].author"
 ```
 
-#### jp.complexity(pathExpression)
-
-Returns a quantitative representation of path extression complexity. Value returned is object with summary of
-
-- number of path components
-- number of filter and script expressions
-- number of unary operations
-- number of binary operations (arithmatic and equivalency)
-- number of logical operations (and/or)
-
-```javascript
-const complexity = jp.complexity('$.a[(@.b + 1 == 5)][?(@.c && @d || !@.e || @.f)]')
-// {
-//   components : 4,
-//  expressions : 2,
-//        unary : 1,
-//       binary : 2,
-//      logical : 3
-// }
-```
-
 ## Differences from dchester Implementation
 
 This implementation aims to be as compatible with dchester's implementation and thus the original Stefan Goessner implemention as possible. See the README in dchester's repo for differences with the original implementation. Differences with dchester's implementation can be found below
